@@ -1,0 +1,91 @@
+<header>
+  <h1><span>Enablers</span> Weather App</h1>
+</header>
+
+
+<!-- Search form -->
+<div class="head">
+  <div class="weatherFilter">
+    <ng-multiselect-dropdown [placeholder]="'Weather Layers'" [data]="mapWeatherLayers" [(ngModel)]="selectedWeatherLayer"
+      [settings]="dropdownSettings.singleSelect" (onSelect)="addWeatherLayer()" (onDeSelect)="removeWeatherLayer()">
+    </ng-multiselect-dropdown>
+  </div>
+  <form id="search">
+    <input type="text" [(ngModel)]="city" name="city" placeholder="City...">
+    <input type="submit" value="Search" (click)="findByCity($event)">
+  </form>
+</div>
+
+
+
+<div id="main">
+
+  <!--Map Begins-->
+  <div class="map">
+    <!--Weather Layer Legend Starts-->
+    <div class="legend-container" *ngIf="selectedWeatherLayer.length>0">
+      <div class="legend-title">{{weatherOption.legendTitle}}</div>
+      <div class="legend-body">
+        <div class="legend-min-scale">{{weatherOption.legendMin}}</div>
+        <div class="legend-avg-scale">{{weatherOption.legendAvg}}</div>
+        <div class="legend-max-scale">{{weatherOption.legendMax}}</div>
+        <div [ngClass]="['legend-scale',weatherOption.scaleClass]"></div>
+      </div>
+    </div>
+    <agm-map (mapReady)="doSomethingWithTheMapInstance($event)" (mapClick)="mapClicked($event)" [latitude]=" lat"
+      [longitude]="lng" [fullscreenControl]='true' [zoomControl]='true' [zoom]="zoom" [disableDefaultUI]='false'
+      [zoomControl]='false' [mapTypeControl]='true'>
+      <agm-marker *ngIf="markerLat != null" [latitude]="markerLat" [longitude]="markerLng"></agm-marker>
+    </agm-map>
+  </div>
+  <!--Map Ends-->
+
+  <!-- Current weather conditions -->
+  <div id="weather">
+    <h3 *ngIf="sky == null">Enter city name or click on the map</h3>
+    <h3 *ngIf="sky">Current weather conditions</h3>
+    <p *ngIf="dispCity">{{dispCity}}</p>
+    <p *ngIf="sky">{{ sky }}</p>
+    <img *ngIf="icon != null" src="https://openweathermap.org/img/w/{{ icon }}.png">
+    <p *ngIf="temperature != null">Temperature: <strong>{{ temperature }} &#8451;</strong></p>
+    <p *ngIf="humidity != null">Humidity: <strong>{{ humidity }} %;</strong></p>
+    <p *ngIf="windSpeed != null">Wind: <strong>{{ windSpeed }} km/h <span [innerHTML]="windDir"></span></strong></p>
+    <p *ngIf="rain != null">Rain (last 3h): <strong>{{ rain }} mm</strong></p>
+    <p *ngIf="snow != null">Snow (last 3h): <strong>{{ snow }} mm</strong></p>
+    <button *ngIf="sky != null" (click)="forecastButtonClicked()">Forecast</button>
+  </div>
+
+</div>
+
+
+<footer>
+  Coded by <a href="https://www.linkedin.com/in/jawad-a-farooqi-609432102/" target="_blank">Jawad A. Farooqi</a>, 2018
+</footer>
+
+
+<!-- Forecast modal -->
+<div id="forecastModal" *ngIf="showForecast">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span>10 Days Forecast</span>
+      <span id="modalCloseButton" (click)="closeForecastModal()">&#10005;</span>
+    </div>
+    <div id="forecast" *ngIf="forecast.length > 0">
+
+      <!-- Days -->
+      <div class="dayForecastBox" *ngFor="let day of forecast" [ngClass]="{weekend: getDay(day.dt) === 'Saturday' || getDay(day.dt) === 'Sunday'}">
+        <div><strong>{{ getDateString(day.dt) }}</strong></div>
+        <div>{{ getDay(day.dt) }}</div>
+        <div>
+          <img src="https://openweathermap.org/img/w/{{ day.weather[0].icon }}.png">
+        </div>
+        <div>Min. temperature: <strong>{{ roundTemperature(day.temp.min) }} &#8451;</strong></div>
+        <div>Max. temperature: <strong>{{ roundTemperature(day.temp.max) }} &#8451;</strong></div>
+        <div>Wind speed: <strong>{{ day.speed }} m/s <span [innerHTML]="mapWindDir(day.deg)"></span></strong></div>
+        <div>Rain: <strong>{{ day.rain || 0 }} mm</strong></div>
+        <div *ngIf="day.snow">Snow: <strong>{{ day.snow }} mm</strong></div>
+      </div>
+
+    </div>
+  </div>
+</div>
